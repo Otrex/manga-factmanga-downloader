@@ -1,0 +1,9 @@
+bin
+factmanga/*
+lib
+pyvenv.cfg
+__pycache__/
+.vscode/
+
+# Temporary files
+*.py[cod]

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <title>File Explorer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+    }
+
+    .wrapper {
+      display: flex;
+      flex-direction: row;
+      width: 100%;
+      gap: 20px
+    }
+
+    main {
+      width: 60%;
+      height: 100vh;
+      overflow-y: auto;
+      margin-right: auto;
+      margin-left: auto;
+    }
+
+    main img {
+      width: 100%;
+      height: auto;
+      
+    }
+
+    #fileExplorer {
+      min-width: 200px;
+      align-self: flex-start;
+      margin-top: 20px;
+      margin-left: 20px;
+      display: none;
+    }
+
+    #fileExplorer, main {
+      background-color: #fff;
+      border: 1px solid #ccc;
+      padding: 10px;
+    }
+
+    .folder {
+      margin-left: 10px;
+      cursor: pointer;
+    }
+
+    .file {
+      margin-left: 10px;
+      color: #666;
+    }
+
+    .folder-icon::before {
+      content: '\f07b'; /* Folder icon */
+      font-family: 'Font Awesome 5 Free';
+      margin-right: 5px;
+      color: #007bff;
+    }
+
+    .file-icon::before {
+      content: '\f15c'; /* File icon */
+      font-family: 'Font Awesome 5 Free';
+      margin-right: 5px;
+      color: #666;
+    }
+
+    .ranger {
+      padding: 20px;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-color: white;
+    }
+    .ranger input {
+      width: 300px;
+      margin-left: auto;
+      margin-right: auto;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+<input hidden id="data" value="{{ context }}" />
+
+<div class="wrapper"> 
+  <div id="fileExplorer"></div>
+  <main>
+    <div class="content"></div>
+  </main>
+</div>
+
+<div class="ranger"> 
+  <input type="range" style="text-align: center;" oninput="resize(this)" min="20" max="100" value="60" />
+</div>
+
+<script>
+  // JSON data
+  var input = document.getElementById('data');
+  var jsonData = JSON.parse(input.value);
+  var main = document.querySelector('main .content');
+  var main_wrapper = document.querySelector('main');
+
+
+  function resize(e) {
+    const value = +e.value;
+    main_wrapper.style.width = value + '%';
+  }
+
+
+  function getNum(s) {
+    return +s.split('-')[1].split('.')[0];
+  }
+  // Render file explorer
+  function renderFileExplorer(data, parentElement) {
+    data.sort((a, b) => {
+      return getNum(a.name) - getNum(b.name)
+    }).forEach(item => {
+      var element = document.createElement('div');
+      element.textContent = item.name;
+
+      if (item.type === 'folder') {
+        element.classList.add('folder');
+        element.innerHTML = '<i class="folder-icon fas fa-folder"></i>' + element.textContent;
+        element.addEventListener('click', function() {
+          if (element.dataset.opened === 'true') {
+            element.dataset.opened = 'false';
+            while (element.nextElementSibling && element.nextElementSibling.classList.contains('child')) {
+              element.nextElementSibling.remove();
+            }
+          } else {
+            element.dataset.opened = 'true';
+            item.contents.forEach(childItem => {
+              var childElement = document.createElement('div');
+              childElement.classList.add('child');
+              childElement.textContent = childItem.name;
+              element.parentNode.insertBefore(childElement, element.nextSibling);
+            });
+          }
+        });
+      } else {
+        element.classList.add('file');
+        element.innerHTML = '<i class="file-icon fas fa-file"></i>' + element.textContent;
+        const image = new Image();
+        const div = document.createElement('div');
+        div.innerHTML = '<h6>' + item.name + '</h6>';
+        image.src = '/static/' + item.path
+        // main.appendChild(div); 
+        main.appendChild(image);
+      }
+
+      // parentElement.appendChild(element); 
+
+      // Recursive call for nested folders
+      if (item.type === 'folder' && item.contents) {
+        renderFileExplorer(item.contents, element);
+      }
+    });
+  }
+
+  var fileExplorerContainer = document.getElementById('fileExplorer');
+  renderFileExplorer(jsonData, fileExplorerContainer);
+
+</script>
+
+
+</body>
+</html>
