@@ -3,7 +3,7 @@
 Run the following below to start.
 First generate a venv configuration.
 
-Run the command:
+Run the following command:
 
 ```bash
 pip3 install venv
